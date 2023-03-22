@@ -1,0 +1,259 @@
+{-# STDLIB_VERSION 6 #-}
+{-# CONTENT_TYPE DAPP #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+let Aurues =  base58'4sUGAwEDLVm6Z3sNbLapWXtEtMkhRU8fypam9dLT4UjM'
+
+# TODO: In future version make nfts smart asset when script adding functionality
+# in Issue call available for ride. Which adds verfication in asset transfer If
+# assets are unlocked then only allow asset transfer 
+
+func onlyOwner(i: Invocation) = {
+    if this.bytes == i.caller.bytes then
+        unit
+    else
+        throw("Only dapp account can call this function!")
+}
+
+func getAuruesPayment(i: Invocation) = {
+    if (size(i.payments) == 0) then {
+        throw("Payment not attached")
+    } else {
+        let p = i.payments[0]
+        match p.assetId {
+            case assetId: ByteVector => {
+                if assetId == Aurues then {
+                    p.amount
+                }else{
+                    throw("Only aurues accepted as payment!")
+                }
+            }
+            case _ => throw("Only aurues accepted as payment!")
+        }
+    }
+}
+
+func getAssetData(assetId: Int) = {
+    if assetId == 0 then {
+        ("Miner", "Utility building that helps you to mine aurues at certain blovk height.", 30000, "__miner")
+    }else if assetId ==1 then {
+        ("Canon", "Utility building that helps you to mine aurues at certain blovk height.", 25000, "_canon")
+    }else if assetId == 2 then{
+        ("Xbow", "Utility building that helps you to mine aurues at certain blovk height.", 15000, "_xbow")
+    }else if assetId == 3 then{
+        ("Tesla", "Utility building that helps you to mine aurues at certain blovk height.", 20000, "_tesla")
+    }else if assetId == 4 then{
+        throw("You can't buy townhall!")
+    }else if assetId == 5 then{
+        ("Archer", "Utility building that helps you to mine aurues at certain blovk height.", 4500, "_archer")
+    }else if assetId == 6 then{
+        ("Robot", "Utility building that helps you to mine aurues at certain blovk height.", 5500, "_robo")
+    }else if assetId == 7 then {
+        ("Valkyriee", "Utility building that helps you to mine aurues at certain blovk height.", 6000, "_valkyriee")
+    }else{
+        throw("Unkown assetId!")
+    }
+}
+
+func getAssetKey(name: String) = {
+    if name == "Miner" then {
+        "__miner"
+    }else if name == "Canon" then {
+        "_canon"
+    }else if name == "Xbow" then{
+        "_xbow"
+    }else if name == "Tesla" then{
+        "_tesla"
+    }else if name == "Townhall" then{
+        throw("You can't add or remove townhall!")
+    }else if name == "Archer" then{
+        "_archer"
+    }else if name == "Robot" then{
+        "_robo"
+    }else if name == "Valkyriee" then{
+        "_valkyriee"
+    }else{
+        throw("Unkown Asset!")
+    }
+}
+
+# Users calls this function when they are playing game 
+# for first time to init game satate for their address
+@Callable(i)
+func startGame() = {
+    let address = toBase58String(i.caller.bytes)
+    let gameStateKey =  address + "_isStrted"
+    if this.getBoolean(gameStateKey) == unit then
+        let userId = match (this.getInteger("userId")) {
+            case x: Int => x + 1
+            case _  => 0
+        }
+        let thIssue = Issue("Townhall", "HQ of your empire", 1, 0,  false)
+        let thAssetId = toBase58String(calculateAssetId(thIssue))
+        ([
+            BooleanEntry(gameStateKey, true),
+            Reissue(Aurues, 100000, true),
+            ScriptTransfer(i.caller, 100000, Aurues),
+            thIssue,
+            ScriptTransfer(i.caller, 1, calculateAssetId(thIssue)),
+            StringEntry(thAssetId, address),
+            IntegerEntry("userId", userId),
+            StringEntry(userId.toString(),  address),
+            IntegerEntry(address + "_townhall", 1),
+            IntegerEntry(address + "_townhall_placed", 0),
+            IntegerEntry(address + "_miner", 0),
+            IntegerEntry(address + "_miner_placed", 0),
+            IntegerEntry(address + "_canon", 0),
+            IntegerEntry(address + "_canon_placed", 0),
+            IntegerEntry(address + "_xbow", 0),
+            IntegerEntry(address + "_xbow_placed", 0),
+            IntegerEntry(address + "_tesla", 0),
+            IntegerEntry(address + "_tesla_placed", 0),
+            IntegerEntry(address + "_archer", 0),
+            IntegerEntry(address + "_robo", 0),
+            IntegerEntry(address + "_valkyriee", 0)
+        ], unit)
+    else
+        throw("Game already started!")
+}
+
+# call this function to save current state of building position
+@Callable(i)
+func saveGame(data: String) = {
+    let thCnt = data.split_51C("buildingIndex':4").size() - 1
+    let minerCnt = data.split_51C("buildingIndex':0").size() - 1
+    let canonCnt = data.split_51C("buildingIndex':1").size() - 1
+    let xbowCnt = data.split_51C("buildingIndex':2").size() - 1
+    let teslaCnt = data.split_51C("buildingIndex':3").size() - 1
+
+    let address = toBase58String(i.caller.bytes)
+    
+    let thAva = this.getIntegerValue(address + "_townhall") + this.getIntegerValue(address + "_townhall_placed")
+    let minerAva = this.getIntegerValue(address + "_miner") + this.getIntegerValue(address + "_miner_placed")
+    let canonAva = this.getIntegerValue(address + "_canon") + this.getIntegerValue(address + "_canon_placed")
+    let xbowAva = this.getIntegerValue(address + "_xbow") + this.getIntegerValue(address + "_xbow_placed")
+    let teslaAva = this.getIntegerValue(address + "_tesla") + this.getIntegerValue(address + "_tesla_placed")
+    
+    if (thCnt <= thAva) && (minerCnt <= minerAva) && (canonCnt <= canonAva) && (xbowCnt <= xbowAva) && (teslaCnt <= teslaAva) then {
+        ([
+            StringEntry(address + "_data", data),
+            IntegerEntry(address + "_townhall", thAva - thCnt),
+            IntegerEntry(address + "_townhall_placed", thCnt),
+            IntegerEntry(address + "_miner", minerAva - minerCnt),
+            IntegerEntry(address + "_miner_placed", minerCnt),
+            IntegerEntry(address + "_canon", canonAva -  canonCnt),
+            IntegerEntry(address + "_canon_placed", canonCnt),
+            IntegerEntry(address + "_xbow", xbowAva -  xbowCnt),
+            IntegerEntry(address + "_xbow_placed", xbowCnt),
+            IntegerEntry(address + "_tesla", teslaAva - teslaCnt),
+            IntegerEntry(address + "_tesla_placed", teslaCnt)
+        ], unit)
+    }else{
+        throw("Placed more building then you owned!")
+    }
+}
+
+
+# this function reward users on war end. Currentl this function is only for test.
+# In future we will use oracle and anticheat engine. This anti cheat engine 
+# will respond to oracle query which having the war id so only trusted party (anti cheat engine)
+# will able to call this function for security and prevent any cheating 
+@Callable(i)
+func rewardWar(building: Int, troops: Int, opponent: String) = {
+    ([
+        Reissue(Aurues, (building * 5000) + (troops * 2000) , true),
+        ScriptTransfer(i.caller, building * 5000, Aurues),
+        ScriptTransfer(Address(fromBase58String(opponent)), troops * 2000, Aurues)
+    ], unit)
+}
+
+
+# Function to buy asset by sending aurues token
+@Callable(i)
+func buy(assetId: Int) = {
+    let address = toBase58String(i.caller.bytes)
+    let auruesAmount = getAuruesPayment(i)
+    let (name ,description, price, key) = getAssetData(assetId)
+    if auruesAmount >= price then {
+        let currentCnt = this.getIntegerValue(address + key)
+        let issue = Issue(name, description, 1, 0,  false)
+        let issuedAssetId = toBase58String(calculateAssetId(issue))
+        ([
+            issue,
+            ScriptTransfer(i.caller, 1, calculateAssetId(issue)),
+            Burn(Aurues, auruesAmount),
+            IntegerEntry(address + key, currentCnt + 1),
+            StringEntry(issuedAssetId, address)
+        ], unit)
+    }else{
+        throw("Not enough payment to buy " + name)
+    }
+}
+
+
+
+# This function will add asset to game(lock) so asset 
+# then asset can be used inside game
+@Callable(i)
+func addAsset() = {
+    if (size(i.payments) == 0) then {
+        throw("No NFT attached to this call!")
+    }else{
+        let nft = i.payments[0]
+        match nft.assetId {
+            case assetId: ByteVector => {
+                match assetInfo(assetId) {
+                    case asset:Asset => {
+                        if asset.issuer == this then {
+                            if this.getString(toBase58String(assetId)) == unit then {
+                                let address = toBase58String(i.caller.bytes)
+                                let key = getAssetKey(asset.name)
+                                let assetCnt = this.getIntegerValue(address + key)
+                                ([
+                                    ScriptTransfer(Address(i.caller.bytes), 1, assetId),
+                                    StringEntry(toBase58String(assetId), address),
+                                    IntegerEntry(address + key, assetCnt +1)
+                                ], unit)
+                            }else{
+                                throw("Asset already added to game!")
+                            }
+                        }else{
+                            throw("Wrong NFT sent!")
+                        }
+                    }
+                    case _ => throw("Can't find asset")
+                }
+            }
+            case _ => throw("Not able to find asset id!!")
+        }
+    }
+}
+
+# if user want to transfer or sell asset he/she nned to
+# remove(unlock) asset from game first. other wise verifier 
+# function in smart asset throw an exception 
+@Callable(i)
+func removeAsset(assetId: String) = {
+    let owner = this.getStringValue(assetId)
+    if fromBase58String(owner) == i.caller.bytes  then{
+            match assetInfo(fromBase58String(assetId)) {
+                case asset:Asset => {
+                    let key = getAssetKey(asset.name)
+                    let address = toBase58String(i.caller.bytes)
+                    let assetCnt = this.getIntegerValue(address + key)
+                    if assetCnt > 0 then {
+                        ([
+                            DeleteEntry(assetId),
+                            IntegerEntry(address + key, assetCnt - 1)       
+                        ], unit)
+                    }else{
+                        throw("All " + asset.name + " are lock inside game")
+                    }
+                }
+                case _ => throw("Can't find asset")
+            }
+    }else{
+        throw("You are not owner of this asset!")
+    }
+}
+
