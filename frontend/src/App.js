@@ -56,7 +56,7 @@ function App() {
   };
 
   window.openMarketPlace = () => {
-    window.open("https://galactic-marketplace-11xg.vercel.app/");
+    window.open("https://waves-marketplace-three.vercel.app/");
   };
 
   window.collectwin = async (troopsDeadCnt, buildingamount, troopsamount) => {
