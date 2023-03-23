@@ -1,0 +1,28 @@
+{
+  "name": "marketplace",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.10.6",
+    "@waves/provider-keeper": "^2.0.5",
+    "@waves/signer": "^1.1.0",
+    "emotion": "^11.0.0",
+    "lint": "^0.8.19",
+    "next": "12.3.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-spinners": "^0.13.8",
+    "three": "^0.150.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.0.28",
+    "eslint": "^8.18.0",
+    "eslint-config-next": "^12.2.0"
+  }
+}
