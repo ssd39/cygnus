@@ -37,19 +37,19 @@ func getAssetData(assetId: Int) = {
     if assetId == 0 then {
         ("Miner", "Utility building that helps you to mine aurues at certain blovk height.", 30000, "__miner")
     }else if assetId ==1 then {
-        ("Canon", "Utility building that helps you to mine aurues at certain blovk height.", 25000, "_canon")
+        ("Canon", "Most powerful attacker building.", 25000, "_canon")
     }else if assetId == 2 then{
-        ("Xbow", "Utility building that helps you to mine aurues at certain blovk height.", 15000, "_xbow")
+        ("Xbow", "Most fast attacker building.", 15000, "_xbow")
     }else if assetId == 3 then{
-        ("Tesla", "Utility building that helps you to mine aurues at certain blovk height.", 20000, "_tesla")
+        ("Tesla", "Best attacker building for short range distance", 20000, "_tesla")
     }else if assetId == 4 then{
         throw("You can't buy townhall!")
     }else if assetId == 5 then{
-        ("Archer", "Utility building that helps you to mine aurues at certain blovk height.", 4500, "_archer")
+        ("Archer", "They are fast runner and fast attacker.", 4500, "_archer")
     }else if assetId == 6 then{
-        ("Robot", "Utility building that helps you to mine aurues at certain blovk height.", 5500, "_robo")
+        ("Robot", "Most advanced attackers which drills down the buildings", 5500, "_robo")
     }else if assetId == 7 then {
-        ("Valkyriee", "Utility building that helps you to mine aurues at certain blovk height.", 6000, "_valkyriee")
+        ("Valkyriee", "Most dangerous attacker.", 6000, "_valkyriee")
     }else{
         throw("Unkown assetId!")
     }
